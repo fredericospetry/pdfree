@@ -1,0 +1,2012 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manipulador de PDFs</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --deepseek-blue: #4a4a4a;
+            --deepseek-dark: #202124;
+            --deepseek-light: #f8f9fa;
+            --deepseek-gray: #5f6368;
+            --deepseek-border: #dadce0;
+            --deepseek-green: #4a4a4a;
+            --deepseek-red: #4a4a4a;
+            --deepseek-purple: #4a4a4a;
+            --deepseek-orange: #4a4a4a;
+            --deepseek-cyan: #4a4a4a;
+            --deepseek-bg: #2d2f33;
+            --deepseek-card: #3c4043;
+            --deepseek-text: #e8eaed;
+            --drop-area-bg: rgba(26,115,232,0.05);
+            --drop-area-border: 2px dashed var(--deepseek-blue);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--deepseek-bg);
+            color: var(--deepseek-text);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px 20px 20px;
+            transition: filter 0.3s ease;
+        }
+
+        footer {
+        text-align: center; /* Centraliza o texto */
+        margin-top: 10px; /* Diminui a margem superior */
+        color: var(--deepseek-text);
+        font-family: 'Calibri', sans-serif; /* Muda a fonte para Calibri */
+        font-size: 0.75rem; /* Tamanho da fonte menor */
+        padding: 4px; /* Diminui o espaço interno */
+        border: 1px solid rgb(94, 94, 94); /* Contorno preto */
+        border-radius: 6px; /* Bordas arredondadas */
+        width: fit-content; /* Ajusta a largura do footer ao conteúdo */
+        margin-left: auto; /* Centraliza horizontalmente */
+        margin-right: auto; /* Centraliza horizontalmente */
+        display: block; /* Muda para block para centralizar corretamente */
+        line-height: 0; /* Diminui a altura da linha */
+    }
+
+        .copyright-link {
+            color: rgb(255, 255, 255); /* Cor do link */
+            text-decoration: none; /* Remove o sublinhado */
+            transition: text-shadow 0.3s ease; /* Transição suave para o efeito */
+        }
+
+        .copyright-link:hover {
+            text-shadow: 0 0 10px red, 0 0 20px red, 0 0 30px red; /* Efeito neon mais forte */
+        }
+        
+        h1 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--deepseek-text);
+            margin: 5px 0 15px;
+            text-align: center;
+            display: none;
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin: 5px 0 15px;
+        }
+        
+        .logo-container img {
+            max-width: 240px;
+            height: auto;
+        }
+        
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: var(--deepseek-card);
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            justify-content: center;
+        }
+        
+        .toolbar button, .toolbar input, .toolbar select {
+            padding: 6px 10px;
+            border: 1px solid var(--deepseek-border);
+            border-radius: 6px;
+            background-color: var(--deepseek-card);
+            color: var(--deepseek-text);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8125rem;
+            transition: all 0.2s;
+        }
+        
+        .toolbar button {
+            font-weight: 500;
+        }
+        
+        .toolbar button:hover {
+            background-color: #4d5157;
+        }
+        
+        .toolbar button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .toolbar button.primary {
+            background: linear-gradient(145deg, #1abc9c, #16a085);
+            color: white;
+            border-color: #5a5a5a;
+        }
+        
+        .toolbar button.primary:hover {
+            background: linear-gradient(145deg, #16a085, #1abc9c);
+        }
+        
+        .toolbar button.danger {
+            background: linear-gradient(145deg, #4a4a4a, #3a3a3a);
+            color: white;
+            border-color: #5a5a5a;
+        }
+        
+        .toolbar button.danger:hover {
+            background: linear-gradient(145deg, #5a5a5a, #4a4a4a);
+        }
+        
+        .toolbar button.success {
+            background: linear-gradient(145deg, #ff0000, #cc0000);
+            color: white;
+            border-color: #ff3333;
+        }
+        
+        .toolbar button.success:hover {
+            background: linear-gradient(145deg, #cc0000, #ff0000);
+        }
+        
+        .toolbar button.info {
+            background: linear-gradient(145deg, #4a4a4a, #3a3a3a);
+            color: white;
+            border-color: #5a5a5a;
+        }
+        
+        .toolbar button.info:hover {
+            background: linear-gradient(145deg, #5a5a5a, #4a4a4a);
+        }
+        
+        .toolbar button.warning {
+            background: linear-gradient(145deg, #4a4a4a, #3a3a3a);
+            color: white;
+            border-color: #5a5a5a;
+        }
+        
+        .toolbar button.warning:hover {
+            background: linear-gradient(145deg, #5a5a5a, #4a4a4a);
+        }
+        
+        .toolbar button.cyan {
+            background: linear-gradient(145deg, #4a4a4a, #3a3a3a);
+            color: white;
+            border-color: #5a5a5a;
+        }
+        
+        .toolbar button.cyan:hover {
+            background: linear-gradient(145deg, #5a5a5a, #4a4a4a);
+        }
+        
+        .toolbar button.cyan.active {
+            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+        }
+        
+        #pdf-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        #pdf-container.hidden {
+            display: none;
+        }
+        
+        #pdf-viewer {
+            width: 60%;
+            height: auto;
+            min-height: 500px;
+            border: 1px solid var(--deepseek-border);
+            margin: 0 auto;
+            margin-bottom: 0;
+            padding-bottom: 0;
+            overflow: auto;
+            position: relative;
+            background-color: var(--deepseek-card);
+            border-radius: 8px;
+            cursor: zoom-in;
+            display: none;
+        }
+        
+        #pdf-viewer.zoomed {
+            cursor: zoom-out;
+        }
+        
+        #pdf-viewer canvas {
+            display: block;
+            margin: 0 auto;
+            margin-bottom: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        #pdf-drop-area {
+            width: 60%;
+            height: 500px;
+            border: var(--drop-area-border);
+            margin: 0 auto;
+            background-color: var(--drop-area-bg);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--deepseek-text);
+            font-size: 0.875rem;
+            text-align: center;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #pdf-drop-area.highlight {
+            background-color: rgba(26,115,232,0.1);
+        }
+
+        #pdf-drop-area p {
+            margin: 5px 0;
+        }
+
+        #pdf-drop-area input[type="file"] {
+            display: none;
+        }
+        
+        .nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 48px;
+            height: 48px;
+            background-color: var(--deepseek-card);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--deepseek-text);
+            z-index: 10;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            opacity: 0.9;
+        }
+        
+        .nav-button:hover {
+            background-color: var(--deepseek-blue);
+            color: white;
+            transform: translateY(-50%) scale(1.1);
+            opacity: 1;
+        }
+        
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background-color: var(--deepseek-card);
+            color: var(--deepseek-text);
+        }
+        
+        .nav-button:disabled:hover {
+            transform: translateY(-50%);
+        }
+        
+        #prev-button {
+            left: calc(20% - 70px);
+        }
+        
+        #next-button {
+            right: calc(20% - 70px);
+        }
+        
+        .page-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin: 10px 0;
+            padding: 8px;
+            background-color: var(--deepseek-card);
+            border-radius: 8px;
+            font-size: 0.8125rem;
+        }
+        
+        .page-controls input {
+            width: 50px;
+            text-align: center;
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid var(--deepseek-border);
+            background-color: var(--deepseek-card);
+            color: var(--deepseek-text);
+        }
+        
+        .page-controls button {
+            padding: 6px 10px;
+            border: 1px solid var(--deepseek-border);
+            border-radius: 6px;
+            background-color: var(--deepseek-card);
+            color: var(--deepseek-text);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8125rem;
+            transition: all 0.2s;
+        }
+        
+        .page-controls button:hover {
+            background-color: #4d5157;
+        }
+        
+        .page-controls button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .page-controls button.cyan:hover {
+            background-color: #0097a7;
+        }
+        
+        .page-controls button.cyan.active {
+            background-color: #4d5157;
+        }
+        
+        .thumbnail-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+            padding: 15px;
+            border: var(--drop-area-border);
+            border-radius: 8px;
+            min-height: 100px;
+            background-color: var(--drop-area-bg);
+        }
+        
+        .thumbnail-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .thumbnail {
+            width: 100px;
+            height: 140px;
+            border: 2px solid var(--deepseek-border);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .thumbnail:hover {
+            border-color: var(--deepseek-blue);
+            transform: translateY(-2px);
+        }
+        
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: all 0.2s;
+        }
+        
+        .thumbnail.selected {
+            border-color: #ff0000;
+            box-shadow: 0 0 0 2px rgba(255,0,0,0.3);
+        }
+        
+        .thumbnail.selected img {
+            opacity: 0.6;
+            filter: blur(1px);
+        }
+        
+        .thumbnail.selected-extract {
+            border-color: #ff0000;
+            box-shadow: 0 0 0 2px rgba(255,0,0,0.3);
+        }
+        
+        .thumbnail.selected-extract img {
+            opacity: 0.8;
+            filter: brightness(1.1);
+        }
+        
+        .thumbnail .page-number {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            text-align: center;
+            padding: 4px;
+            font-size: 11px;
+        }
+        
+        .drop-area {
+            border: var(--drop-area-border);
+            padding: 20px;
+            text-align: center;
+            margin: 15px 0;
+            background-color: var(--drop-area-bg);
+            border-radius: 8px;
+            display: none;
+            color: var(--deepseek-text);
+            font-size: 0.875rem;
+        }
+        
+        .drop-area.active {
+            display: block;
+        }
+        
+        .drop-area.highlight {
+            background-color: rgba(26,115,232,0.1);
+        }
+        
+        .zoom-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        }
+        
+        .zoom-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        }
+        
+        .zoom-content canvas {
+            max-width: 100%;
+            max-height: 90vh;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: var(--deepseek-card);
+            padding: 24px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.5);
+        }
+        
+        .modal h3 {
+            margin-top: 0;
+            color: var(--deepseek-text);
+        }
+        
+        .modal p {
+            margin-bottom: 20px;
+            color: var(--deepseek-text);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .modal-buttons button {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+        }
+        
+        #modal-cancel {
+            background-color: var(--deepseek-gray);
+            color: white;
+        }
+        
+        #modal-cancel:hover {
+            background-color: #4d5157;
+        }
+        
+        #modal-confirm {
+            background-color: var(--deepseek-blue);
+            color: white;
+        }
+        
+        #modal-confirm:hover {
+            background-color: #1765cc;
+        }
+        
+        .confirm-remove-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        #confirm-remove, #confirm-extract, #confirm-reorder {
+            padding: 8px 16px;
+            background: linear-gradient(145deg, #ff0000, #cc0000);
+            color: white;
+            border: 1px solid #ff3333;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 700;
+            display: none;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        #confirm-remove:hover, #confirm-extract:hover, #confirm-reorder:hover {
+            background: linear-gradient(145deg, #cc0000, #ff0000);
+        }
+        
+        #confirm-reorder {
+            font-weight: 700 !important;
+        }
+        
+        .remove-instructions {
+            font-size: 0.875rem;
+            color: var(--deepseek-text);
+        }
+        
+        .added-pages-notice {
+            background-color: rgba(52, 168, 83, 0.2);
+            color: var(--deepseek-text);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 0.875rem;
+            border-left: 4px solid var(--deepseek-green);
+        }
+        
+        .add-pages-thumbnails {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        #no-files-chosen {
+            font-size: 0.875rem;
+            color: var(--deepseek-gray);
+            margin-top: 5px;
+        }
+        
+        #confirm-reorder {
+            padding: 8px 16px;
+            background-color: var(--deepseek-cyan);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            display: none;
+        }
+        
+        #confirm-reorder:hover {
+            background-color: #0097a7;
+        }
+        
+        .progress-container {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            max-width: 300px;
+            background-color: var(--deepseek-card);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            text-align: center;
+            z-index: 9999;
+        }
+
+        .progress-container.active {
+            display: block;
+        }
+
+        .progress-container.active + .container {
+            filter: blur(3px);
+            pointer-events: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background-color: var(--deepseek-border);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background-color: var(--deepseek-blue);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.875rem;
+            color: var(--deepseek-text);
+            font-weight: 500;
+        }
+
+        /* Adicionar transição suave para o container principal */
+        .container {
+            transition: filter 0.3s ease;
+        }
+
+        #toggle-pdf {
+            background: linear-gradient(145deg, #4a4a4a, #3a3a3a);
+            color: white;
+            border-color: #5a5a5a;
+        }
+        
+        #toggle-pdf:hover {
+            background: linear-gradient(145deg, #5a5a5a, #4a4a4a);
+        }
+        
+        #toggle-pdf.active {
+            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-container" id="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-text" id="progress-text">Atualizando PDF...</div>
+    </div>
+    
+    <div class="container">
+        <div class="logo-container">
+            <img src="PDFree.png" alt="PDFree Logo">
+        </div>
+        
+        <h1>Manipulador de PDFs</h1>
+        
+        <div class="toolbar">
+            <input type="file" id="pdf-input" accept=".pdf" style="display: none;">
+            <button id="load-pdf" class="primary">Abrir PDF</button>
+            <button id="remove-pages" class="danger">Remover Páginas</button>
+            <button id="extract-pages" class="warning">Extrair Páginas</button>
+            <button id="add-pages" class="info">Juntar Páginas</button>
+            <button id="reorder-pages" class="cyan">Reorganizar Páginas</button>
+            <button id="save-pdf" class="success" disabled>Baixar PDF Alterado</button>
+        </div>
+        
+        <div class="page-controls">
+            <button id="first-page" class="warning" disabled>Primeira</button>
+            <span>Ir para pag: <input type="number" id="page-num" min="1" value="1"> / de <span id="page-count">0</span> páginas.</span>
+            <button id="last-page" class="warning" disabled>Última</button>
+            <button id="toggle-pdf" class="cyan">Esconder PDF</button>
+        </div>
+        
+        <div id="pdf-container">
+            <div id="pdf-viewer"></div>
+            <button id="prev-button" class="nav-button" disabled>&lt;</button>
+            <button id="next-button" class="nav-button" disabled>&gt;</button>
+        </div>
+        
+        <div id="add-pages-area" class="drop-area" style="display: none;">
+            <input type="file" id="add-pdf-input" accept=".pdf" multiple>
+            <div id="no-files-chosen">Nenhum arquivo escolhido</div>
+            <div id="added-pages-notice" class="added-pages-notice" style="display: none;"></div>
+            <div class="add-pages-thumbnails" id="add-pages-thumbnails"></div>
+        </div>
+        
+        <div id="reorder-area" class="thumbnail-container" style="display: none;">
+            <div class="confirm-remove-container">
+                <p class="remove-instructions">Arraste e solte as páginas para reorganizá-las</p>
+                <button id="confirm-reorder">Reorganizar Páginas Selecionadas</button>
+            </div>
+            <div class="thumbnail-wrapper"></div>
+        </div>
+        
+        <div id="remove-area" class="thumbnail-container" style="display: none;">
+            <div class="confirm-remove-container">
+                <p class="remove-instructions">Selecione as páginas que deseja remover clicando nelas</p>
+                <button id="confirm-remove">Remover Páginas Selecionadas</button>
+            </div>
+            <div class="thumbnail-wrapper"></div>
+        </div>
+
+        <div id="extract-area" class="thumbnail-container" style="display: none;">
+            <div class="confirm-remove-container">
+                <p class="remove-instructions">Selecione as páginas que deseja extrair clicando nelas</p>
+                <button id="confirm-extract">Extrair/Baixar Páginas Selecionadas</button>
+            </div>
+            <div class="thumbnail-wrapper"></div>
+        </div>
+    </div>
+    
+    <div id="zoom-modal" class="zoom-modal">
+        <div class="zoom-content">
+            <canvas id="zoom-canvas"></canvas>
+        </div>
+    </div>
+    
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <h3>Confirmar Ação</h3>
+            <p id="modal-message">Tem certeza que deseja salvar as alterações no PDF?</p>
+            <div class="modal-buttons">
+                <button id="modal-cancel">Cancelar</button>
+                <button id="modal-confirm">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.worker.min.js';
+        
+        let pdfDoc = null,
+            pageNum = 1,
+            pageRendering = false,
+            pageNumPending = null,
+            scale = 1.0,
+            canvas = document.createElement('canvas'),
+            ctx = canvas.getContext('2d'),
+            thumbnails = [],
+            selectedThumbnails = [],
+            selectedExtractThumbnails = [],
+            currentMode = null;
+        
+        const pdfViewer = document.getElementById('pdf-viewer'),
+              pageCountEl = document.getElementById('page-count'),
+              pageNumEl = document.getElementById('page-num'),
+              firstPageBtn = document.getElementById('first-page'),
+              prevPageBtn = document.getElementById('prev-button'),
+              nextPageBtn = document.getElementById('next-button'),
+              lastPageBtn = document.getElementById('last-page'),
+              loadPdfBtn = document.getElementById('load-pdf'),
+              pdfInput = document.getElementById('pdf-input'),
+              addPagesBtn = document.getElementById('add-pages'),
+              reorderPagesBtn = document.getElementById('reorder-pages'),
+              removePagesBtn = document.getElementById('remove-pages'),
+              extractPagesBtn = document.getElementById('extract-pages'),
+              savePdfBtn = document.getElementById('save-pdf'),
+              addPagesArea = document.getElementById('add-pages-area'),
+              addPdfInput = document.getElementById('add-pdf-input'),
+              reorderArea = document.getElementById('reorder-area'),
+              removeArea = document.getElementById('remove-area'),
+              extractArea = document.getElementById('extract-area'),
+              confirmRemoveBtn = document.getElementById('confirm-remove'),
+              confirmExtractBtn = document.getElementById('confirm-extract'),
+              confirmModal = document.getElementById('confirm-modal'),
+              modalCancelBtn = document.getElementById('modal-cancel'),
+              modalConfirmBtn = document.getElementById('modal-confirm'),
+              modalMessage = document.getElementById('modal-message'),
+              addedPagesNotice = document.getElementById('added-pages-notice'),
+              noFilesChosen = document.getElementById('no-files-chosen'),
+              addPagesThumbnails = document.getElementById('add-pages-thumbnails'),
+              zoomCanvas = document.getElementById('zoom-canvas'),
+              zoomCtx = zoomCanvas.getContext('2d'),
+              zoomModal = document.getElementById('zoom-modal'),
+              reorderThumbnailWrapper = document.querySelector('#reorder-area .thumbnail-wrapper'),
+              removeThumbnailWrapper = document.querySelector('#remove-area .thumbnail-wrapper'),
+              extractThumbnailWrapper = document.querySelector('#extract-area .thumbnail-wrapper'),
+              confirmReorderBtn = document.getElementById('confirm-reorder'),
+              progressContainer = document.getElementById('progress-container'),
+              progressFill = document.getElementById('progress-fill'),
+              progressText = document.getElementById('progress-text'),
+              togglePdfBtn = document.getElementById('toggle-pdf'),
+              pdfContainer = document.getElementById('pdf-container');
+        
+        pdfViewer.style.display = 'block';
+        
+        pdfViewer.appendChild(canvas);
+        
+        loadPdfBtn.addEventListener('click', () => {
+            if (pdfDoc) {
+                modalMessage.textContent = 'Você tem um PDF sendo manipulado. Deseja abrir um novo PDF? Todas as alterações não salvas serão perdidas.';
+                modalConfirmBtn.onclick = function() {
+                    pdfInput.click();
+                    confirmModal.style.display = 'none';
+                };
+                modalCancelBtn.onclick = function() {
+                    confirmModal.style.display = 'none';
+                };
+                confirmModal.style.display = 'flex';
+            } else {
+                pdfInput.click();
+            }
+        });
+        pdfInput.addEventListener('change', loadPDF);
+        
+        firstPageBtn.addEventListener('click', () => {
+            if (pageNum !== 1) {
+                pageNum = 1;
+                renderPage(pageNum);
+            }
+        });
+        
+        prevPageBtn.addEventListener('click', () => {
+            if (pageNum > 1) {
+                pageNum--;
+                renderPage(pageNum);
+            }
+        });
+        
+        nextPageBtn.addEventListener('click', () => {
+            if (pageNum < pdfDoc.numPages) {
+                pageNum++;
+                renderPage(pageNum);
+            }
+        });
+        
+        lastPageBtn.addEventListener('click', () => {
+            if (pageNum !== pdfDoc.numPages) {
+                pageNum = pdfDoc.numPages;
+                renderPage(pageNum);
+            }
+        });
+        
+        togglePdfBtn.addEventListener('click', () => {
+            const isHidden = pdfContainer.classList.toggle('hidden');
+            togglePdfBtn.textContent = isHidden ? 'Mostrar PDF' : 'Esconder PDF';
+            togglePdfBtn.classList.toggle('active', isHidden);
+        });
+        
+        pageNumEl.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const newPageNum = parseInt(pageNumEl.value);
+                if (newPageNum > 0 && newPageNum <= pdfDoc.numPages) {
+                    pageNum = newPageNum;
+                    renderPage(pageNum);
+                } else {
+                    pageNumEl.value = pageNum;
+                }
+            }
+        });
+        
+        addPagesBtn.addEventListener('click', toggleAddPagesMode);
+        reorderPagesBtn.addEventListener('click', toggleReorderMode);
+        removePagesBtn.addEventListener('click', toggleRemoveMode);
+        extractPagesBtn.addEventListener('click', toggleExtractMode);
+        savePdfBtn.addEventListener('click', confirmSave);
+        
+        addPdfInput.addEventListener('change', function(e) {
+            if (this.files.length > 0) {
+                noFilesChosen.textContent = `${this.files.length} arquivo(s) selecionado(s)`;
+                handleAddPdfFiles(e);
+            } else {
+                noFilesChosen.textContent = 'Nenhum arquivo escolhido';
+            }
+        });
+        
+        pdfViewer.addEventListener('click', showZoomModal);
+        zoomModal.addEventListener('click', () => zoomModal.style.display = 'none');
+        
+        // Restaurar eventos de drag and drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            addPagesArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            addPagesArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            addPagesArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        addPagesArea.addEventListener('drop', handleDrop, false);
+        
+        confirmRemoveBtn.addEventListener('click', removeSelectedPages);
+        confirmExtractBtn.addEventListener('click', async function() {
+            if (selectedExtractThumbnails.length === 0) return;
+            
+            try {
+                modalMessage.textContent = `Tem certeza que deseja extrair ${selectedExtractThumbnails.length} página(s) para um novo PDF? O download iniciará ao confirmar.`;
+                modalConfirmBtn.onclick = async function() {
+                    try {
+                        const originalPdfBytes = await pdfInput.files[0].arrayBuffer();
+                        const originalPdfDoc = await PDFLib.PDFDocument.load(originalPdfBytes);
+                        
+                        const newPdfDoc = await PDFLib.PDFDocument.create();
+                        
+                        // Ordenar as páginas a serem extraídas
+                        const pagesToExtract = [...selectedExtractThumbnails].sort((a, b) => a - b);
+                        
+                        // Converter números de página para índices (começando em 0)
+                        const pageIndices = pagesToExtract.map(num => num - 1);
+                        
+                        // Verificar se os índices são válidos
+                        if (pageIndices.some(index => index < 0 || index >= originalPdfDoc.getPageCount())) {
+                            throw new Error('Índices de página inválidos');
+                        }
+                        
+                        // Copiar as páginas selecionadas
+                        const pages = await newPdfDoc.copyPages(originalPdfDoc, pageIndices);
+                        pages.forEach(page => newPdfDoc.addPage(page));
+                        
+                        // Salvar o novo PDF
+                        const newPdfBytes = await newPdfDoc.save();
+                        
+                        // Criar blob e URL
+                        const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
+                        const url = URL.createObjectURL(blob);
+                        
+                        // Criar elemento de download
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'paginas_extraidas.pdf';
+                        
+                        // Adicionar à página, clicar e remover
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        
+                        // Limpar URL do blob
+                        URL.revokeObjectURL(url);
+                        
+                        // Limpar seleção e atualizar interface
+                        selectedExtractThumbnails = [];
+                        confirmExtractBtn.style.display = 'none';
+                        
+                        // Manter a área de extração visível e atualizar as miniaturas
+                        extractArea.style.display = 'flex';
+                        extractPagesBtn.style.backgroundColor = '#4d5157';
+                        createThumbnails();
+                        
+                    } catch (error) {
+                        console.error('Erro ao extrair páginas:', error);
+                        alert('Ocorreu um erro ao extrair as páginas. Por favor, tente novamente.');
+                    }
+                    confirmModal.style.display = 'none';
+                };
+                
+                confirmModal.style.display = 'flex';
+            } catch (error) {
+                console.error('Erro ao preparar extração de páginas:', error);
+                alert('Ocorreu um erro ao preparar a extração das páginas. Por favor, tente novamente.');
+            }
+        });
+        
+        modalCancelBtn.addEventListener('click', () => {
+            confirmModal.style.display = 'none';
+        });
+
+        modalConfirmBtn.addEventListener('click', executeModalAction);
+        
+        function showZoomModal() {
+            if (!pdfDoc) return;
+            
+            zoomModal.style.display = 'flex';
+            renderZoomPage(pageNum);
+            
+            // Adicionar tooltip ao cursor
+            const tooltip = document.createElement('div');
+            tooltip.style.position = 'fixed';
+            tooltip.style.backgroundColor = 'rgba(0,0,0,0.7)';
+            tooltip.style.color = 'white';
+            tooltip.style.padding = '5px 10px';
+            tooltip.style.borderRadius = '3px';
+            tooltip.style.fontSize = '12px';
+            tooltip.style.pointerEvents = 'none';
+            tooltip.textContent = 'Clique para fechar';
+            document.body.appendChild(tooltip);
+            
+            zoomModal.addEventListener('mousemove', (e) => {
+                tooltip.style.left = (e.clientX + 15) + 'px';
+                tooltip.style.top = (e.clientY + 15) + 'px';
+            });
+            
+            zoomModal.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+            
+            zoomModal.addEventListener('mouseenter', () => {
+                tooltip.style.display = 'block';
+            });
+            
+            zoomModal.addEventListener('click', () => {
+                zoomModal.style.display = 'none';
+                document.body.removeChild(tooltip);
+            });
+        }
+        
+        function renderZoomPage(num) {
+            pdfDoc.getPage(num).then(function(page) {
+                const viewport = page.getViewport({ scale: 1.5 });
+                zoomCanvas.height = viewport.height;
+                zoomCanvas.width = viewport.width;
+                
+                const renderContext = {
+                    canvasContext: zoomCtx,
+                    viewport: viewport
+                };
+                
+                page.render(renderContext);
+            });
+        }
+        
+        function loadPDF(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const fileReader = new FileReader();
+            
+            fileReader.onload = function() {
+                const typedarray = new Uint8Array(this.result);
+                
+                pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                    pdfDoc = pdf;
+                    pageCountEl.textContent = pdf.numPages;
+                    pageNum = 1;
+                    pageNumEl.value = pageNum;
+                    
+                    updateNavButtons();
+                    savePdfBtn.disabled = false;
+                    
+                    // Garantir que o PDF viewer esteja visível
+                    pdfViewer.style.display = 'block';
+                    
+                    renderPage(pageNum);
+                    createThumbnails();
+                    
+                    // Resetar todos os modos ao carregar um novo PDF
+                    resetModes();
+                });
+            };
+            
+            fileReader.readAsArrayBuffer(file);
+        }
+        
+        function renderPage(num) {
+            pageRendering = true;
+            
+            pdfDoc.getPage(num).then(function(page) {
+                const viewport = page.getViewport({ scale: scale * 0.7 });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                
+                const renderTask = page.render(renderContext);
+                
+                renderTask.promise.then(function() {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+            
+            pageNumEl.value = num;
+            updateNavButtons();
+        }
+        
+        function updateNavButtons() {
+            firstPageBtn.disabled = pageNum === 1;
+            prevPageBtn.disabled = pageNum === 1;
+            nextPageBtn.disabled = pageNum === pdfDoc.numPages;
+            lastPageBtn.disabled = pageNum === pdfDoc.numPages;
+        }
+        
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+        
+        async function createThumbnails() {
+            reorderThumbnailWrapper.innerHTML = '';
+            removeThumbnailWrapper.innerHTML = '';
+            extractThumbnailWrapper.innerHTML = '';
+            thumbnails = [];
+            
+            const newConfirmBtn = document.getElementById('confirm-remove');
+            newConfirmBtn.addEventListener('click', removeSelectedPages);
+            
+            try {
+                progressContainer.classList.add('active');
+                progressFill.style.width = '0%';
+                progressText.textContent = 'Atualizando PDF...';
+                
+                const thumbnailPromises = Array.from({ length: pdfDoc.numPages }, async (_, i) => {
+                    const pageNum = i + 1;
+                    const page = await pdfDoc.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 0.2 });
+                    const thumbnailCanvas = document.createElement('canvas');
+                    thumbnailCanvas.width = viewport.width;
+                    thumbnailCanvas.height = viewport.height;
+                    
+                    const thumbnailCtx = thumbnailCanvas.getContext('2d');
+                    await page.render({ canvasContext: thumbnailCtx, viewport }).promise;
+                    
+                    const thumbnail = document.createElement('div');
+                    thumbnail.className = 'thumbnail';
+                    thumbnail.dataset.pageNum = pageNum;
+                    thumbnail.draggable = true;
+                    
+                    const img = document.createElement('img');
+                    img.src = thumbnailCanvas.toDataURL();
+                    
+                    const pageNumber = document.createElement('div');
+                    pageNumber.className = 'page-number';
+                    pageNumber.textContent = `Página ${pageNum}`;
+                    
+                    thumbnail.appendChild(img);
+                    thumbnail.appendChild(pageNumber);
+                    
+                    const progress = ((i + 1) / pdfDoc.numPages) * 100;
+                    progressFill.style.width = `${progress}%`;
+                    progressText.textContent = `Atualizando PDF... ${Math.round(progress)}%`;
+                    
+                    return { element: thumbnail, pageNum };
+                });
+                
+                thumbnails = await Promise.all(thumbnailPromises);
+                
+                const reorderClones = thumbnails.map(thumb => {
+                    const clone = thumb.element.cloneNode(true);
+                    setupDragAndDrop(clone);
+                    return clone;
+                });
+                
+                const removeClones = thumbnails.map(thumb => {
+                    const clone = thumb.element.cloneNode(true);
+                    clone.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        this.classList.toggle('selected');
+                        const pageNum = parseInt(this.dataset.pageNum);
+                        const index = selectedThumbnails.indexOf(pageNum);
+                        if (index === -1) selectedThumbnails.push(pageNum);
+                        else selectedThumbnails.splice(index, 1);
+                        confirmRemoveBtn.style.display = selectedThumbnails.length > 0 ? 'block' : 'none';
+                    });
+                    return clone;
+                });
+                
+                const extractClones = thumbnails.map(thumb => {
+                    const clone = thumb.element.cloneNode(true);
+                    clone.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        this.classList.toggle('selected-extract');
+                        const pageNum = parseInt(this.dataset.pageNum);
+                        const index = selectedExtractThumbnails.indexOf(pageNum);
+                        if (index === -1) selectedExtractThumbnails.push(pageNum);
+                        else selectedExtractThumbnails.splice(index, 1);
+                        confirmExtractBtn.style.display = selectedExtractThumbnails.length > 0 ? 'block' : 'none';
+                    });
+                    return clone;
+                });
+                
+                reorderThumbnailWrapper.append(...reorderClones);
+                removeThumbnailWrapper.append(...removeClones);
+                extractThumbnailWrapper.append(...extractClones);
+                
+                setTimeout(() => {
+                    progressContainer.classList.remove('active');
+                    progressFill.style.width = '0%';
+                    progressText.textContent = 'Atualizando PDF...';
+                }, 500);
+                
+            } catch (error) {
+                console.error('Erro ao criar miniaturas:', error);
+                progressContainer.classList.remove('active');
+                progressFill.style.width = '0%';
+                progressText.textContent = 'Atualizando PDF...';
+            }
+        }
+        
+        function toggleReorderMode() {
+            if (!pdfDoc) {
+                alert('Para reorganizar páginas, primeiro abra um PDF no botão "Abrir PDF".');
+                return;
+            }
+            
+            if (currentMode === 'reorder') {
+                currentMode = null;
+                reorderArea.style.display = 'none';
+                reorderPagesBtn.style.backgroundColor = '';
+                confirmReorderBtn.style.display = 'none';
+            } else {
+                resetModes();
+                currentMode = 'reorder';
+                reorderArea.style.display = 'flex';
+                reorderPagesBtn.style.backgroundColor = '#4d5157';
+                reorderThumbnailWrapper.innerHTML = '';
+                
+                progressContainer.classList.add('active');
+                progressFill.style.width = '0%';
+                progressText.textContent = 'Atualizando PDF...';
+                
+                const thumbnailPromises = Array.from({ length: pdfDoc.numPages }, async (_, i) => {
+                    const pageNum = i + 1;
+                    const page = await pdfDoc.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 0.2 });
+                    const thumbnailCanvas = document.createElement('canvas');
+                    thumbnailCanvas.width = viewport.width;
+                    thumbnailCanvas.height = viewport.height;
+                    
+                    const thumbnailCtx = thumbnailCanvas.getContext('2d');
+                    await page.render({ canvasContext: thumbnailCtx, viewport }).promise;
+                    
+                    const thumbnail = document.createElement('div');
+                    thumbnail.className = 'thumbnail';
+                    thumbnail.dataset.pageNum = pageNum;
+                    thumbnail.draggable = true;
+                    
+                    const img = document.createElement('img');
+                    img.src = thumbnailCanvas.toDataURL();
+                    
+                    const pageNumber = document.createElement('div');
+                    pageNumber.className = 'page-number';
+                    pageNumber.textContent = `Página ${pageNum}`;
+                    
+                    thumbnail.appendChild(img);
+                    thumbnail.appendChild(pageNumber);
+                    
+                    const progress = ((i + 1) / pdfDoc.numPages) * 100;
+                    progressFill.style.width = `${progress}%`;
+                    progressText.textContent = `Atualizando PDF... ${Math.round(progress)}%`;
+                    
+                    return thumbnail;
+                });
+                
+                Promise.all(thumbnailPromises).then(thumbnails => {
+                    thumbnails.forEach(thumb => {
+                        const clone = thumb.cloneNode(true);
+                        setupDragAndDrop(clone);
+                        reorderThumbnailWrapper.appendChild(clone);
+                    });
+                    
+                    setTimeout(() => {
+                        progressContainer.classList.remove('active');
+                        progressFill.style.width = '0%';
+                        progressText.textContent = 'Atualizando PDF...';
+                    }, 500);
+                });
+            }
+        }
+        
+        function toggleRemoveMode() {
+            if (!pdfDoc) {
+                alert('Para remover páginas, primeiro abra um PDF no botão "Abrir PDF".');
+                return;
+            }
+            
+            if (currentMode === 'remove') {
+                currentMode = null;
+                removeArea.style.display = 'none';
+                removePagesBtn.style.backgroundColor = '';
+                selectedThumbnails = [];
+                confirmRemoveBtn.style.display = 'none';
+            } else {
+                resetModes();
+                currentMode = 'remove';
+                removeArea.style.display = 'flex';
+                removePagesBtn.style.backgroundColor = '#4d5157';
+                removeThumbnailWrapper.innerHTML = '';
+                
+                progressContainer.classList.add('active');
+                progressFill.style.width = '0%';
+                progressText.textContent = 'Atualizando PDF...';
+                
+                const thumbnailPromises = Array.from({ length: pdfDoc.numPages }, async (_, i) => {
+                    const pageNum = i + 1;
+                    const page = await pdfDoc.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 0.2 });
+                    const thumbnailCanvas = document.createElement('canvas');
+                    thumbnailCanvas.width = viewport.width;
+                    thumbnailCanvas.height = viewport.height;
+                    
+                    const thumbnailCtx = thumbnailCanvas.getContext('2d');
+                    await page.render({ canvasContext: thumbnailCtx, viewport }).promise;
+                    
+                    const thumbnail = document.createElement('div');
+                    thumbnail.className = 'thumbnail';
+                    thumbnail.dataset.pageNum = pageNum;
+                    
+                    const img = document.createElement('img');
+                    img.src = thumbnailCanvas.toDataURL();
+                    
+                    const pageNumber = document.createElement('div');
+                    pageNumber.className = 'page-number';
+                    pageNumber.textContent = `Página ${pageNum}`;
+                    
+                    thumbnail.appendChild(img);
+                    thumbnail.appendChild(pageNumber);
+                    
+                    const progress = ((i + 1) / pdfDoc.numPages) * 100;
+                    progressFill.style.width = `${progress}%`;
+                    progressText.textContent = `Atualizando PDF... ${Math.round(progress)}%`;
+                    
+                    return thumbnail;
+                });
+                
+                Promise.all(thumbnailPromises).then(thumbnails => {
+                    thumbnails.forEach(thumb => {
+                        const clone = thumb.cloneNode(true);
+                        clone.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            this.classList.toggle('selected');
+                            const pageNum = parseInt(this.dataset.pageNum);
+                            const index = selectedThumbnails.indexOf(pageNum);
+                            if (index === -1) selectedThumbnails.push(pageNum);
+                            else selectedThumbnails.splice(index, 1);
+                            confirmRemoveBtn.style.display = selectedThumbnails.length > 0 ? 'block' : 'none';
+                        });
+                        removeThumbnailWrapper.appendChild(clone);
+                    });
+                    
+                    setTimeout(() => {
+                        progressContainer.classList.remove('active');
+                        progressFill.style.width = '0%';
+                        progressText.textContent = 'Atualizando PDF...';
+                    }, 500);
+                });
+            }
+        }
+        
+        function toggleExtractMode() {
+            if (!pdfDoc) {
+                alert('Para extrair páginas, primeiro abra um PDF no botão "Abrir PDF".');
+                return;
+            }
+            
+            if (currentMode === 'extract') {
+                currentMode = null;
+                extractArea.style.display = 'none';
+                extractPagesBtn.style.backgroundColor = '';
+                selectedExtractThumbnails = [];
+                confirmExtractBtn.style.display = 'none';
+            } else {
+                resetModes();
+                currentMode = 'extract';
+                extractArea.style.display = 'flex';
+                extractPagesBtn.style.backgroundColor = '#4d5157';
+                extractThumbnailWrapper.innerHTML = '';
+                
+                progressContainer.classList.add('active');
+                progressFill.style.width = '0%';
+                progressText.textContent = 'Atualizando PDF...';
+                
+                const thumbnailPromises = Array.from({ length: pdfDoc.numPages }, async (_, i) => {
+                    const pageNum = i + 1;
+                    const page = await pdfDoc.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 0.2 });
+                    const thumbnailCanvas = document.createElement('canvas');
+                    thumbnailCanvas.width = viewport.width;
+                    thumbnailCanvas.height = viewport.height;
+                    
+                    const thumbnailCtx = thumbnailCanvas.getContext('2d');
+                    await page.render({ canvasContext: thumbnailCtx, viewport }).promise;
+                    
+                    const thumbnail = document.createElement('div');
+                    thumbnail.className = 'thumbnail';
+                    thumbnail.dataset.pageNum = pageNum;
+                    
+                    const img = document.createElement('img');
+                    img.src = thumbnailCanvas.toDataURL();
+                    
+                    const pageNumber = document.createElement('div');
+                    pageNumber.className = 'page-number';
+                    pageNumber.textContent = `Página ${pageNum}`;
+                    
+                    thumbnail.appendChild(img);
+                    thumbnail.appendChild(pageNumber);
+                    
+                    const progress = ((i + 1) / pdfDoc.numPages) * 100;
+                    progressFill.style.width = `${progress}%`;
+                    progressText.textContent = `Atualizando PDF... ${Math.round(progress)}%`;
+                    
+                    return thumbnail;
+                });
+                
+                Promise.all(thumbnailPromises).then(thumbnails => {
+                    thumbnails.forEach(thumb => {
+                        const clone = thumb.cloneNode(true);
+                        clone.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            this.classList.toggle('selected-extract');
+                            const pageNum = parseInt(this.dataset.pageNum);
+                            const index = selectedExtractThumbnails.indexOf(pageNum);
+                            if (index === -1) selectedExtractThumbnails.push(pageNum);
+                            else selectedExtractThumbnails.splice(index, 1);
+                            confirmExtractBtn.style.display = selectedExtractThumbnails.length > 0 ? 'block' : 'none';
+                        });
+                        extractThumbnailWrapper.appendChild(clone);
+                    });
+                    
+                    setTimeout(() => {
+                        progressContainer.classList.remove('active');
+                        progressFill.style.width = '0%';
+                        progressText.textContent = 'Atualizando PDF...';
+                    }, 500);
+                });
+            }
+        }
+        
+        function resetModes() {
+            currentMode = null;
+            
+            // Fechar todas as áreas
+            addPagesArea.style.display = 'none';
+            reorderArea.style.display = 'none';
+            removeArea.style.display = 'none';
+            extractArea.style.display = 'none';
+            
+            // Resetar todos os botões
+            addPagesBtn.style.backgroundColor = '';
+            reorderPagesBtn.style.backgroundColor = '';
+            removePagesBtn.style.backgroundColor = '';
+            extractPagesBtn.style.backgroundColor = '';
+            
+            // Limpar seleções
+            selectedThumbnails = [];
+            selectedExtractThumbnails = [];
+            
+            // Esconder botões de confirmação
+            if (confirmRemoveBtn) confirmRemoveBtn.style.display = 'none';
+            if (confirmExtractBtn) confirmExtractBtn.style.display = 'none';
+            if (confirmReorderBtn) confirmReorderBtn.style.display = 'none';
+            
+            // Limpar área de adição de páginas
+            noFilesChosen.textContent = 'Nenhum arquivo escolhido';
+            addedPagesNotice.style.display = 'none';
+            addPagesThumbnails.innerHTML = '';
+        }
+        
+        function handleAddPdfFiles(e) {
+            const files = e.target.files;
+            if (files.length === 0) return;
+            
+            processPdfFiles(files);
+        }
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                noFilesChosen.textContent = `${files.length} arquivo(s) selecionado(s)`;
+                processPdfFiles(files);
+            }
+        }
+        
+        async function processPdfFiles(files) {
+            const pdfFiles = Array.from(files).filter(file => file.type === 'application/pdf');
+            
+            if (pdfFiles.length === 0) {
+                alert('Por favor, selecione apenas arquivos PDF.');
+                return;
+            }
+
+            if (!pdfDoc) {
+                alert('Para juntar arquivos PDF\'s, primeiro abra um deles no botão "Abrir PDF".');
+                return;
+            }
+
+            addedPagesNotice.style.display = 'block';
+            noFilesChosen.style.display = 'none';
+            addPagesThumbnails.innerHTML = '';
+            
+            try {
+                progressContainer.classList.add('active');
+                progressFill.style.width = '0%';
+                progressText.textContent = 'Atualizando PDF...';
+                
+                let totalPagesToAdd = 0;
+                let allThumbnails = [];
+                
+                // Primeiro, criar miniaturas das páginas existentes
+                const originalPdfBytes = await pdfInput.files[0].arrayBuffer();
+                const originalPdfDoc = await pdfjsLib.getDocument(originalPdfBytes).promise;
+                
+                // Criar miniaturas das páginas existentes
+                const existingThumbnails = await Promise.all(
+                    Array.from({ length: originalPdfDoc.numPages }, async (_, i) => {
+                        const thumbnail = await createAddPageThumbnail(originalPdfDoc, i + 1, 'PDF Atual');
+                        const progress = ((i + 1) / originalPdfDoc.numPages) * 100;
+                        progressFill.style.width = `${progress}%`;
+                        progressText.textContent = `Atualizando PDF... ${Math.round(progress)}%`;
+                        return thumbnail;
+                    })
+                );
+                
+                allThumbnails = allThumbnails.concat(existingThumbnails);
+                
+                // Criar miniaturas das novas páginas
+                for (const file of pdfFiles) {
+                    const newPdfBytes = await file.arrayBuffer();
+                    const newPdfDoc = await pdfjsLib.getDocument(newPdfBytes).promise;
+                    
+                    totalPagesToAdd += newPdfDoc.numPages;
+                    
+                    // Criar todas as miniaturas para este PDF
+                    const thumbnails = await Promise.all(
+                        Array.from({ length: newPdfDoc.numPages }, async (_, i) => {
+                            const thumbnail = await createAddPageThumbnail(newPdfDoc, i + 1, file.name);
+                            const progress = ((i + 1) / newPdfDoc.numPages) * 100;
+                            progressFill.style.width = `${progress}%`;
+                            progressText.textContent = `Atualizando PDF... ${Math.round(progress)}%`;
+                            return thumbnail;
+                        })
+                    );
+                    
+                    allThumbnails = allThumbnails.concat(thumbnails);
+                }
+                
+                // Adicionar todas as miniaturas de uma vez
+                addPagesThumbnails.append(...allThumbnails);
+                
+                addedPagesNotice.textContent = `${totalPagesToAdd} página(s) inserida(s) após a última página. Prossiga para a próxima etapa!`;
+
+                // Depois, fazer a mesclagem dos PDFs
+                const originalPdfDocLib = await PDFLib.PDFDocument.load(originalPdfBytes);
+                
+                for (const file of pdfFiles) {
+                    const newPdfBytes = await file.arrayBuffer();
+                    const newPdfDoc = await PDFLib.PDFDocument.load(newPdfBytes);
+                    
+                    const pages = await originalPdfDocLib.copyPages(newPdfDoc, newPdfDoc.getPageIndices());
+                    pages.forEach(page => originalPdfDocLib.addPage(page));
+                }
+                
+                const mergedPdfBytes = await originalPdfDocLib.save();
+                const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+                
+                const newFile = new File([blob], 'merged.pdf', { type: 'application/pdf' });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(newFile);
+                pdfInput.files = dataTransfer.files;
+                
+                // Recarregar o PDF com as novas páginas apenas uma vez
+                const fileReader = new FileReader();
+                fileReader.onload = function() {
+                    const typedarray = new Uint8Array(this.result);
+                    pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                        pdfDoc = pdf;
+                        pageCountEl.textContent = pdf.numPages;
+                        pageNum = 1;
+                        pageNumEl.value = pageNum;
+                        
+                        updateNavButtons();
+                        savePdfBtn.disabled = false;
+                        
+                        renderPage(pageNum);
+                        createThumbnails();
+                        
+                        // Manter a área de adição visível
+                        addPagesArea.style.display = 'block';
+                        addPagesBtn.style.backgroundColor = '#4d5157';
+                    });
+                };
+                fileReader.readAsArrayBuffer(newFile);
+                
+                // Esconder a barra de progresso após um pequeno delay
+                setTimeout(() => {
+                    progressContainer.classList.remove('active');
+                    progressFill.style.width = '0%';
+                    progressText.textContent = 'Atualizando PDF...';
+                }, 500);
+                
+            } catch (error) {
+                console.error('Erro ao processar PDFs:', error);
+                alert('Ocorreu um erro ao processar os PDFs. Por favor, tente novamente.');
+                progressContainer.classList.remove('active');
+                progressFill.style.width = '0%';
+                progressText.textContent = 'Atualizando PDF...';
+            }
+        }
+        
+        async function createAddPageThumbnail(pdfDoc, pageNum, filename) {
+            try {
+                const page = await pdfDoc.getPage(pageNum);
+                const viewport = page.getViewport({ scale: 0.15 });
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                
+                await page.render({
+                    canvasContext: ctx,
+                    viewport: viewport
+                }).promise;
+                
+                const thumbnail = document.createElement('div');
+                thumbnail.className = 'thumbnail';
+                thumbnail.style.position = 'relative';
+                
+                const img = document.createElement('img');
+                img.src = canvas.toDataURL();
+                img.style.border = '1px solid var(--deepseek-border)';
+                
+                const info = document.createElement('div');
+                info.style.position = 'absolute';
+                info.style.bottom = '0';
+                info.style.left = '0';
+                info.style.right = '0';
+                info.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                info.style.color = 'white';
+                info.style.padding = '2px';
+                info.style.fontSize = '10px';
+                info.style.textAlign = 'center';
+                info.textContent = `Pág. ${pageNum}`;
+                
+                if (pageNum === 1) {
+                    const fileNameText = document.createElement('div');
+                    fileNameText.style.fontSize = '9px';
+                    fileNameText.style.marginBottom = '2px';
+                    fileNameText.textContent = filename.length > 15 ? 
+                        filename.substring(0, 12) + '...' : filename;
+                    thumbnail.insertBefore(fileNameText, thumbnail.firstChild);
+                }
+                
+                thumbnail.appendChild(img);
+                thumbnail.appendChild(info);
+                
+                return thumbnail;
+            } catch (error) {
+                console.error('Erro ao criar miniatura:', error);
+                return null;
+            }
+        }
+        
+        async function removeSelectedPages() {
+            if (selectedThumbnails.length === 0) return;
+            
+            try {
+                modalMessage.textContent = `Tem certeza que deseja remover ${selectedThumbnails.length} página(s)?`;
+                modalConfirmBtn.onclick = async function() {
+                    try {
+                        progressContainer.classList.add('active');
+                        progressFill.style.width = '0%';
+                        progressText.textContent = 'Removendo páginas...';
+                        
+                        const originalPdfBytes = await pdfInput.files[0].arrayBuffer();
+                        const originalPdfDoc = await PDFLib.PDFDocument.load(originalPdfBytes);
+                        
+                        const newPdfDoc = await PDFLib.PDFDocument.create();
+                        
+                        // Ordenar as páginas a serem removidas em ordem decrescente para evitar problemas com índices
+                        const pagesToRemove = [...selectedThumbnails].sort((a, b) => b - a);
+                        
+                        // Criar array com índices das páginas a serem mantidas
+                        const pageIndices = Array.from({ length: originalPdfDoc.getPageCount() }, (_, i) => i)
+                            .filter(i => !pagesToRemove.includes(i + 1));
+                        
+                        if (pageIndices.length === 0) {
+                            alert('Não é possível remover todas as páginas do PDF.');
+                            return;
+                        }
+                        
+                        const pages = await newPdfDoc.copyPages(originalPdfDoc, pageIndices);
+                        pages.forEach(page => newPdfDoc.addPage(page));
+                        
+                        const newPdfBytes = await newPdfDoc.save();
+                        const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
+                        
+                        const newFile = new File([blob], 'removed_pages.pdf', { type: 'application/pdf' });
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(newFile);
+                        pdfInput.files = dataTransfer.files;
+                        
+                        // Recarregar o PDF com as páginas removidas
+                        const fileReader = new FileReader();
+                        fileReader.onload = function() {
+                            const typedarray = new Uint8Array(this.result);
+                            pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                                pdfDoc = pdf;
+                                pageCountEl.textContent = pdf.numPages;
+                                pageNum = 1;
+                                pageNumEl.value = pageNum;
+                                
+                                updateNavButtons();
+                                savePdfBtn.disabled = false;
+                                
+                                renderPage(pageNum);
+                                
+                                // Manter a barra de progresso visível durante a criação das miniaturas
+                                progressText.textContent = 'Criando novas miniaturas...';
+                                progressFill.style.width = '0%';
+                                
+                                createThumbnails().then(() => {
+                                    selectedThumbnails = [];
+                                    confirmRemoveBtn.style.display = 'none';
+                                    
+                                    // Manter a área de remoção visível
+                                    removeArea.style.display = 'flex';
+                                    
+                                    // Esconder a barra de progresso após um pequeno delay
+                                    setTimeout(() => {
+                                        progressContainer.classList.remove('active');
+                                        progressFill.style.width = '0%';
+                                        progressText.textContent = 'Atualizando PDF...';
+                                    }, 500);
+                                });
+                            });
+                        };
+                        fileReader.readAsArrayBuffer(newFile);
+                        
+                    } catch (error) {
+                        console.error('Erro ao remover páginas:', error);
+                        alert('Ocorreu um erro ao remover as páginas. Por favor, tente novamente.');
+                        progressContainer.classList.remove('active');
+                        progressFill.style.width = '0%';
+                        progressText.textContent = 'Atualizando PDF...';
+                    }
+                    confirmModal.style.display = 'none';
+                };
+                
+                confirmModal.style.display = 'flex';
+            } catch (error) {
+                console.error('Erro ao preparar remoção de páginas:', error);
+                alert('Ocorreu um erro ao preparar a remoção das páginas. Por favor, tente novamente.');
+            }
+        }
+        
+        function confirmSave() {
+            if (!pdfDoc) return;
+            
+            modalMessage.textContent = 'Tem certeza que deseja baixar o PDF com as alterações?';
+            modalConfirmBtn.onclick = function() {
+                downloadPdf();
+                confirmModal.style.display = 'none';
+            };
+            
+            confirmModal.style.display = 'flex';
+        }
+        
+        function executeModalAction() {
+            confirmModal.style.display = 'none';
+        }
+        
+        async function downloadPdf() {
+            try {
+                const pdfBytes = await pdfInput.files[0].arrayBuffer();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'edited_document.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                console.error('Erro ao baixar o PDF:', error);
+                alert('Ocorreu um erro ao baixar o PDF. Por favor, tente novamente.');
+            }
+        }
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        function highlight() {
+            addPagesArea.classList.add('highlight');
+        }
+        
+        function unhighlight() {
+            addPagesArea.classList.remove('highlight');
+        }
+        
+        async function saveReorderedPdf() {
+            try {
+                progressContainer.classList.add('active');
+                progressFill.style.width = '0%';
+                progressText.textContent = 'Atualizando PDF...';
+                
+                const originalPdfBytes = await pdfInput.files[0].arrayBuffer();
+                const originalPdfDoc = await PDFLib.PDFDocument.load(originalPdfBytes);
+                
+                const newPdfDoc = await PDFLib.PDFDocument.create();
+                
+                const newOrder = Array.from(reorderThumbnailWrapper.querySelectorAll('.thumbnail'))
+                    .map(thumb => parseInt(thumb.dataset.pageNum) - 1);
+                
+                const pages = await newPdfDoc.copyPages(originalPdfDoc, newOrder);
+                pages.forEach(page => newPdfDoc.addPage(page));
+                
+                const newPdfBytes = await newPdfDoc.save();
+                const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
+                
+                const newFile = new File([blob], 'reordered.pdf', { type: 'application/pdf' });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(newFile);
+                pdfInput.files = dataTransfer.files;
+                
+                // Recarregar o PDF com a nova ordem
+                const fileReader = new FileReader();
+                fileReader.onload = function() {
+                    const typedarray = new Uint8Array(this.result);
+                    pdfjsLib.getDocument(typedarray).promise.then(async function(pdf) {
+                        pdfDoc = pdf;
+                        pageCountEl.textContent = pdf.numPages;
+                        pageNum = 1;
+                        pageNumEl.value = pageNum;
+                        
+                        updateNavButtons();
+                        savePdfBtn.disabled = false;
+                        
+                        renderPage(pageNum);
+                        
+                        // Atualizar texto da barra de progresso
+                        progressText.textContent = 'Criando novas miniaturas...';
+                        progressFill.style.width = '0%';
+                        
+                        // Criar novas miniaturas com progresso
+                        const thumbnailPromises = Array.from({ length: pdf.numPages }, async (_, i) => {
+                            const pageNum = i + 1;
+                            const page = await pdf.getPage(pageNum);
+                            const viewport = page.getViewport({ scale: 0.2 });
+                            const thumbnailCanvas = document.createElement('canvas');
+                            thumbnailCanvas.width = viewport.width;
+                            thumbnailCanvas.height = viewport.height;
+                            
+                            const thumbnailCtx = thumbnailCanvas.getContext('2d');
+                            const renderContext = {
+                                canvasContext: thumbnailCtx,
+                                viewport: viewport
+                            };
+                            
+                            await page.render(renderContext).promise;
+                            
+                            const thumbnail = document.createElement('div');
+                            thumbnail.className = 'thumbnail';
+                            thumbnail.dataset.pageNum = pageNum;
+                            thumbnail.draggable = true;
+                            
+                            const img = document.createElement('img');
+                            img.src = thumbnailCanvas.toDataURL();
+                            
+                            const pageNumber = document.createElement('div');
+                            pageNumber.className = 'page-number';
+                            pageNumber.textContent = `Página ${pageNum}`;
+                            
+                            thumbnail.appendChild(img);
+                            thumbnail.appendChild(pageNumber);
+                            
+                            // Atualizar progresso
+                            const progress = ((i + 1) / pdf.numPages) * 100;
+                            progressFill.style.width = `${progress}%`;
+                            progressText.textContent = `Atualizando PDF... ${Math.round(progress)}%`;
+                            
+                            return {
+                                element: thumbnail,
+                                pageNum: pageNum
+                            };
+                        });
+                        
+                        thumbnails = await Promise.all(thumbnailPromises);
+                        
+                        // Atualizar texto da barra de progresso
+                        progressText.textContent = 'Finalizando reorganização...';
+                        progressFill.style.width = '100%';
+                        
+                        // Manter a área de reorganização visível e atualizar as miniaturas
+                        reorderArea.style.display = 'flex';
+                        confirmReorderBtn.style.display = 'none';
+                        
+                        // Recriar as miniaturas na ordem correta
+                        reorderThumbnailWrapper.innerHTML = '';
+                        thumbnails.forEach(thumb => {
+                            const clone = thumb.element.cloneNode(true);
+                            setupDragAndDrop(clone);
+                            reorderThumbnailWrapper.appendChild(clone);
+                        });
+                        
+                        // Esconder a barra de progresso após um pequeno delay
+                        setTimeout(() => {
+                            progressContainer.classList.remove('active');
+                            progressFill.style.width = '0%';
+                            progressText.textContent = 'Atualizando PDF...';
+                        }, 500);
+                    });
+                };
+                fileReader.readAsArrayBuffer(newFile);
+                
+            } catch (error) {
+                console.error('Erro ao reordenar páginas:', error);
+                alert('Ocorreu um erro ao reordenar as páginas. Por favor, tente novamente.');
+                progressContainer.classList.remove('active');
+                progressFill.style.width = '0%';
+                progressText.textContent = 'Atualizando PDF...';
+            }
+        }
+
+        // Adicionar evento de clique ao botão de confirmação
+        confirmReorderBtn.addEventListener('click', function() {
+            modalMessage.textContent = 'Tem certeza que deseja salvar a nova ordem das páginas?';
+            modalConfirmBtn.onclick = function() {
+                saveReorderedPdf();
+                confirmModal.style.display = 'none';
+            };
+            confirmModal.style.display = 'flex';
+        });
+
+        function setupDragAndDrop(element) {
+            element.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('text/plain', this.dataset.pageNum);
+                setTimeout(() => this.classList.add('dragging'), 0);
+            });
+            
+            element.addEventListener('dragend', function() {
+                this.classList.remove('dragging');
+                confirmReorderBtn.style.display = 'block';
+            });
+            
+            element.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                const draggingElement = document.querySelector('.dragging');
+                if (draggingElement && draggingElement !== this) {
+                    const rect = this.getBoundingClientRect();
+                    const next = (e.clientY - rect.top) > (rect.height / 2);
+                    
+                    if (next) {
+                        reorderThumbnailWrapper.insertBefore(draggingElement, this.nextSibling);
+                    } else {
+                        reorderThumbnailWrapper.insertBefore(draggingElement, this);
+                    }
+                }
+            });
+        }
+
+        function toggleAddPagesMode() {
+            if (!pdfDoc) {
+                alert('Para juntar arquivos PDF\'s, primeiro abra um deles no botão "Abrir PDF".');
+                return;
+            }
+
+            if (currentMode === 'add') {
+                currentMode = null;
+                addPagesArea.style.display = 'none';
+                addPagesBtn.style.backgroundColor = '';
+            } else {
+                resetModes();
+                currentMode = 'add';
+                addPagesBtn.style.backgroundColor = '#4d5157';
+                addPagesArea.style.display = 'block';
+                addPdfInput.click();
+            }
+        }
+    </script>
+    <footer>
+        <p>
+            &copy; 2025 <a href="https://www.instagram.com/petryfrederico/" class="copyright-link" target="_blank">Frederico S. Petry</a>
+        </p>
+    </footer>
+</body>
+</html>
