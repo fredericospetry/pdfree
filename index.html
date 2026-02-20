@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manipulador de PDFs</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="progress-container" id="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-text" id="progress-text">Atualizando PDF...</div>
+    </div>
+
+    <div class="container">
+        <div class="logo-container">
+            <img src="PDFree.png" alt="PDFree Logo">
+        </div>
+
+        <h1>Manipulador de PDFs</h1>
+
+        <div class="toolbar">
+            <input type="file" id="pdf-input" accept=".pdf" style="display: none;">
+            <button id="load-pdf" class="primary">Abrir PDF</button>
+            <button id="remove-pages" class="danger">Remover Págs</button>
+            <button id="extract-pages" class="warning">Extrair Págs</button>
+            <button id="add-pages" class="info">Juntar Págs</button>
+            <button id="reorder-pages" class="cyan">Reorganizar Págs</button>
+            <select id="ocr-mode" disabled>
+                <option value="" selected>OCR...</option>
+                <option value="current">OCR Pág Atual</option>
+                <option value="all">OCR Todas as Págs</option>
+            </select>
+            <button id="save-pdf" class="success" disabled>Baixar PDF Alterado</button>
+        </div>
+
+        <div class="page-controls">
+            <button id="first-page" class="warning" disabled>Primeira</button>
+            <span>
+                <span id="page-jump-label">Ir para pág:</span>
+                <input type="number" id="page-num" min="1" value="1">
+                <span id="page-jump-separator">/ de</span>
+                <span id="page-count">0</span>
+                <span id="page-jump-suffix">págs.</span>
+            </span>
+            <button id="last-page" class="warning" disabled>Última</button>
+            <button id="toggle-pdf" class="cyan">Esconder PDF</button>
+        </div>
+
+        <div id="pdf-container">
+            <div id="pdf-viewer"></div>
+            <button id="prev-button" class="nav-button" disabled>&lt;</button>
+            <button id="next-button" class="nav-button" disabled>&gt;</button>
+        </div>
+
+        <div id="add-pages-area" class="drop-area" style="display: none;">
+            <input type="file" id="add-pdf-input" accept=".pdf" multiple>
+            <div id="no-files-chosen">Nenhum arquivo escolhido</div>
+            <div id="added-pages-notice" class="added-pages-notice" style="display: none;"></div>
+            <div class="add-pages-thumbnails" id="add-pages-thumbnails"></div>
+        </div>
+
+        <div id="reorder-area" class="thumbnail-container" style="display: none;">
+            <div class="confirm-remove-container">
+                <p class="remove-instructions">Arraste e solte as páginas para reorganizá-las</p>
+                <button id="confirm-reorder">Reorganizar Páginas Selecionadas</button>
+            </div>
+            <div class="thumbnail-wrapper"></div>
+        </div>
+
+        <div id="remove-area" class="thumbnail-container" style="display: none;">
+            <div class="confirm-remove-container">
+                <p class="remove-instructions">Selecione as páginas que deseja remover clicando nelas</p>
+                <button id="confirm-remove">Remover Páginas Selecionadas</button>
+            </div>
+            <div class="thumbnail-wrapper"></div>
+        </div>
+
+        <div id="extract-area" class="thumbnail-container" style="display: none;">
+            <div class="confirm-remove-container">
+                <p class="remove-instructions">Selecione as páginas que deseja extrair clicando nelas</p>
+                <button id="confirm-extract">Extrair/Baixar Páginas Selecionadas</button>
+            </div>
+            <div class="thumbnail-wrapper"></div>
+        </div>
+
+        <footer>
+            <p>
+                &copy; 2026 <a href="https://fspdev.netlify.app/" class="copyright-link" target="_blank">FSP ADS</a>
+            </p>
+        </footer>
+    </div>
+
+    <div id="zoom-modal" class="zoom-modal">
+        <div class="zoom-content">
+            <canvas id="zoom-canvas"></canvas>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <h3>Confirmar Ação</h3>
+            <p id="modal-message">Tem certeza que deseja salvar as alterações no PDF?</p>
+            <div class="modal-buttons">
+                <button id="modal-cancel">Cancelar</button>
+                <button id="modal-confirm">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
