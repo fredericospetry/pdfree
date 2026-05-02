@@ -11,8 +11,8 @@
 :root {
     --bg:           #020a02;
     --panel:        rgba(0, 12, 0, 0.96);
-    --card:         rgba(0, 12, 0, 0.35);
-    --card-2:       rgba(0, 19, 0, 0.80);
+    --card:         rgba(0, 12, 0, 0.28);
+    --card-2:       rgba(0, 19, 0, 0.45);
 
     --green:        #39ff4a;
     --green-mid:    #55cc77;
@@ -109,13 +109,13 @@ body {
     max-width: 1100px;
     margin: 0 auto;
     padding: 18px 22px 26px;
-    background: rgba(0, 8, 0, 0.82);
+    background: rgba(0, 8, 0, 0.40);
     border: 1.5px solid var(--border);
     border-radius: var(--radius-lg);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(4px);
     box-shadow:
         0 0 40px rgba(0, 255, 60, 0.05),
-        0 8px 32px rgba(0, 0, 0, 0.70);
+        0 8px 32px rgba(0, 0, 0, 0.40);
 }
 
 /* ── LOGO ──────────────────────────────────────────────────── */
@@ -162,11 +162,11 @@ h1 {
     gap: 5px;
     margin-bottom: 10px;
     padding: 10px;
-    background: var(--card);
+    background: rgba(0, 10, 0, 0.22);
     border: 1.5px solid var(--border-lo);
     border-radius: var(--radius);
     justify-content: center;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(2px);
 }
 
 .toolbar button,
@@ -334,13 +334,13 @@ h1 {
     gap: 7px;
     margin: 8px 0 12px;
     padding: 9px 16px;
-    background: var(--card);
+    background: rgba(0, 10, 0, 0.22);
     border: 1.5px solid var(--border-lo);
     border-radius: var(--radius);
     font-size: 11px;
     color: var(--green-mid);
     letter-spacing: 0.03em;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(2px);
 }
 
 .page-controls button {
@@ -426,7 +426,7 @@ h1 {
     margin: 0 auto;
     overflow: auto;
     position: relative;
-    background: rgba(0, 8, 0, 0.50);
+    background: rgba(0, 8, 0, 0.18);
     border-radius: var(--radius);
     cursor: zoom-in;
     display: none;
@@ -489,9 +489,9 @@ h1 {
     padding: 14px;
     border: 1.5px solid var(--border-lo);
     border-radius: var(--radius);
-    background: var(--card);
+    background: rgba(0, 10, 0, 0.20);
     min-height: 80px;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(2px);
     animation: fadeIn 0.18s ease;
 }
 
