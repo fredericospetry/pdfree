@@ -74,7 +74,7 @@ function applyResponsiveButtonLabels() {
     loadPdfBtn.textContent = mobile ? 'Abrir' : 'Abrir PDF';
     removePagesBtn.textContent = mobile ? 'Remover' : 'Remover Págs';
     extractPagesBtn.textContent = mobile ? 'Extrair' : 'Extrair Págs';
-    addPagesBtn.textContent = mobile ? 'Juntar' : 'Juntar Págs';
+    addPagesBtn.textContent = mobile ? 'adicionar' : 'adicionar Págs';
     reorderPagesBtn.textContent = mobile ? 'Reorganizar' : 'Reorganizar Págs';
     savePdfBtn.textContent = mobile ? 'Baixar PDF' : 'Baixar PDF Alterado';
     firstPageBtn.textContent = mobile ? '1ª' : 'Primeira';
@@ -822,7 +822,7 @@ async function processPdfFiles(files) {
     }
 
     if (!pdfDoc) {
-        alert('Para juntar arquivos PDF\'s, primeiro abra um deles no botão "Abrir PDF".');
+        alert('Para adicionar arquivos PDF\'s, primeiro abra um deles no botão "Abrir PDF".');
         return;
     }
 
@@ -1134,7 +1134,7 @@ function setupDragAndDrop(element) {
 
 function toggleAddPagesMode() {
     if (!pdfDoc) {
-        alert('Para juntar arquivos PDF\'s, primeiro abra um deles no botão "Abrir PDF".');
+        alert('Para adicionar arquivos PDF\'s, primeiro abra um deles no botão "Abrir PDF".');
         return;
     }
 
