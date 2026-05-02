@@ -74,7 +74,7 @@ function applyResponsiveButtonLabels() {
     loadPdfBtn.textContent = mobile ? 'Abrir' : 'Abrir PDF';
     removePagesBtn.textContent = mobile ? 'Remover' : 'Remover Págs';
     extractPagesBtn.textContent = mobile ? 'Extrair' : 'Extrair Págs';
-    addPagesBtn.textContent = mobile ? 'adicionar' : 'adicionar Págs';
+    addPagesBtn.textContent = mobile ? 'Adicionar' : 'Adicionar Págs';
     reorderPagesBtn.textContent = mobile ? 'Reorganizar' : 'Reorganizar Págs';
     savePdfBtn.textContent = mobile ? 'Baixar PDF' : 'Baixar PDF Alterado';
     firstPageBtn.textContent = mobile ? '1ª' : 'Primeira';
